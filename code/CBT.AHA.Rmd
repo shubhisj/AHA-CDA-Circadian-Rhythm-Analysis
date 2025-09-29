@@ -1,0 +1,278 @@
+---
+title: "AHA.CBT"
+author: "Shubhi Jain"
+date: "2025-06-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+# Installing necessary packages
+```{r}
+install.packages("dplyr")
+install.packages("lubridate")
+install.packages("stringr")
+install.packages("tidyverse")
+install.packages("Matrix")
+install.packages("purrr")
+install.packages("hms")
+```
+
+```{r}
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(tidyverse)
+library(Matrix)
+library(purrr)
+library(hms)
+```
+
+# Importing all CBT datasets
+```{r}
+aha_108 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 1)
+aha_117 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 2)
+aha_120 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 3)
+aha_131 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 4)
+aha_133 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 5)
+aha_135 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 6)
+aha_139 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 7)
+aha_140 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 8)
+aha_142 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 9)
+aha_148 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 10)
+#aha_152 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 2)
+aha_153 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 11)
+aha_156 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 12)
+aha_157 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 13)
+aha_163 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 14)
+aha_164 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 15)
+aha_165 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 16)
+aha_167 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 17)
+aha_168 <- read_excel("~/Desktop/UAB/AHA CDA/AHA-Updated/AHA-CDA Code/CBT.Raw-Data.xlsx", sheet = 18)
+#View(aha_139)
+```
+
+# Merging the datasets
+```{r}
+combined_cbt <- bind_rows(
+  aha_108,
+  aha_117,
+  aha_120,
+  aha_131,
+  aha_133,
+  aha_135,
+  aha_140,
+  aha_142,
+  aha_148,
+  #aha_152,
+  aha_153,
+  aha_156,
+  aha_157,
+  aha_163,
+  aha_164,
+  aha_165,
+  aha_167,
+  aha_168
+)
+dim(combined_cbt)
+#View(combined_cbt)
+```
+
+# Cleaning the combined dataset
+
+#Converting CBT to Celsius
+```{r}
+combined_cbt2 <- combined_cbt %>% 
+  mutate(
+         CBT.F = na_if(CBT.F, 8888.88),
+         CBT.C = (CBT.F - 32) * 5/9)
+#View(combined_cbt2)
+```
+
+#AHA139 is in a different format. So we clean it separately and stardardizing it with other datasets.
+
+# Cleaning AHA139 (different format)
+```{r}
+aha_139_cleaned <- aha_139 %>% 
+  mutate(
+         CBT.F = na_if(CBT.F, 8888.88),
+         CBT.C = (CBT.F - 32) * 5/9) %>% 
+  mutate(Date = as.Date(Date)) %>% 
+  mutate(Time = format(Time, "%H:%M:%S"),
+         Time = as_hms(Time)) %>% 
+  mutate(DateTime = as.POSIXct(paste(Date, Time), format="%Y-%m-%d %H:%M:%S")) %>% 
+  dplyr::select(ID ,DateTime, CBT.C)
+View(aha_139_cleaned)
+```
+
+# Cleaning the Datetime variable
+```{r}
+
+# Extracting the Hour of the day from Datetime and CBT.F colums
+clean_cbt <- combined_cbt2 %>%
+  mutate(Hour_of_day = if_else(str_starts(Datetime, "H"), as.integer(CBT.F), NA_integer_),
+         Min_sec = if_else(str_starts(Datetime, "T"),str_remove(Datetime, "^T"), NA_character_),
+         Day_index = if_else(str_starts(Datetime,"H"), as.integer(str_remove(Datetime,"^H")), NA_integer_))
+```
+
+```{r}
+clean_cbt2 <- clean_cbt %>% 
+  fill(Hour_of_day, .direction = "down") %>% 
+  fill(Day_index, .direction = "down") %>% 
+  
+  # Creating different columns for Minute and Second
+  mutate(minute = if_else(!is.na(Min_sec), as.integer(str_extract(Min_sec, "^[0-9]+")), NA_integer_),
+         second = if_else(!is.na(Min_sec),as.integer(str_extract(Min_sec, "(?<=:)[0-9]+")), NA_integer_),
+         hour_str   = sprintf("%02d", Hour_of_day), 
+         minute_str = sprintf("%02d", coalesce(minute, 0)),
+         second_str = sprintf("%02d", coalesce(second, 0)),
+         Datetime_cleaned = paste0(hour_str, ":", minute_str, ":", second_str),
+         Date = if_else(str_starts(Datetime, "H"), as.Date("2021-06-01") + as.integer(str_remove(Datetime, "^H")), NA_Date_)) %>% 
+  fill(Date, .direction = "down") %>% 
+  mutate(Time_of_day = sprintf("%02d:%02d:%02d", Hour_of_day, minute, second),
+    DateTime = as.POSIXct(paste(Date, Time_of_day), format="%Y-%m-%d %H:%M:%S")) %>% 
+  dplyr::select(ID, DateTime, CBT.C) %>% 
+  filter(!is.na(ID)) 
+
+view(clean_cbt2)
+```
+
+# Combining combined combined_cbt2 and aha_139_cleaned
+```{r}
+combined_cbt3 <- bind_rows(clean_cbt2, aha_139_cleaned)
+dim(combined_cbt3)
+View(combined_cbt3)
+```
+
+
+# Excluding the first 6 hours of the dataset
+```{r}
+clean_cbt3 <- combined_cbt3 %>% 
+  group_by(ID) %>%
+  mutate(
+    start_time = min(DateTime, na.rm = TRUE), 
+    cutoff6    = start_time + hours(6) + minutes(30)       
+  ) %>%
+  ungroup() %>%
+  filter(DateTime > cutoff6) %>% 
+  dplyr::select(-start_time, -cutoff6)                
+view(clean_cbt3)
+```
+
+# Binning the data into 30-min bins
+```{r}
+clean_cbt4 <- clean_cbt3 %>% 
+  filter(CBT.C >= 36.5, CBT.C <= 38.0) %>%
+  filter(!(ID %in% c("134", "112"))) %>% 
+  mutate(DateTime_30 = floor_date(DateTime, "30 minutes")) %>%
+  group_by(ID, DateTime_30) %>%
+  summarise(
+    CBT.C   = mean(CBT.C, na.rm = TRUE),
+    n_obs   = sum(!is.na(CBT.C)),
+    .groups = "drop"
+  )
+View(clean_cbt4)
+```
+
+# Generating Id-level plots for raw estimates
+```{r}
+ggplot(clean_cbt4, aes(x = DateTime_30, y = CBT.C)) +
+  geom_point(size = 0.5, alpha = 0.3) +
+  geom_line(size = 0.8, color = "firebrick", size = 0.8) +
+  facet_wrap(~ ID, scales = "free_x") +
+  scale_y_continuous(limits = c(36.5, 38.0)) +
+  labs(
+    title = "Raw 30-min binned CBT by subject",
+    x     = "Time",
+    y     = "Core Body Temperature (°C)"
+  ) +
+  theme_minimal()
+```
+
+# Smoothing the CBT data
+```{r}
+drago_smooth <- function(y, lambda1, lambda2, max_iter=100, tol=1e-6) {
+  N <- length(y)
+  mask  <- !is.na(y)
+  y_obs <- y; y_obs[!mask] <- 0
+  S <- Diagonal(x = as.numeric(mask))
+  D <- diff(Diagonal(N), differences = 2)
+  x <- as.numeric(S %*% y_obs)
+  f <- numeric(N)
+  for (i in seq_len(max_iter)) {
+    w <- lambda1/(abs(x)+lambda1); A <- Diagonal(x=w)
+    B   <- t(S)%*%A%*%S + lambda2*(t(D)%*%D)
+    rhs <- t(S)%*%(A%*%y_obs)
+    f_n <- as.numeric(solve(B, rhs))
+    resid <- as.numeric(S %*%(y_obs - f_n))
+    x_n   <- (abs(x)/(abs(x)+lambda1))*resid
+    if (max(abs(f_n-f), abs(x_n-x), na.rm=TRUE) < tol) { f <- f_n; x<-x_n; break }
+    f <- f_n; x <- x_n
+  }
+  tibble(f = f, x = x)
+}
+```
+
+```{r}
+cbt_30sm <- clean_cbt4 %>% 
+  group_by(ID) %>%
+  arrange(DateTime_30) %>%
+  nest() %>%                 
+  mutate(
+    drago = map(data, ~ drago_smooth(.x$CBT.C, lambda1 = 0.3, lambda2 = 10))
+  ) %>%
+  unnest(cols = c(data, drago)) %>%
+
+  ungroup()
+
+```
+
+# Plotting Id-level plots to generated smoothed CBT data
+```{r}
+
+library(ggplot2)
+
+ggplot(cbt_30sm, aes(x = DateTime_30)) +
+  geom_point(aes(y = CBT.C),    size = 0.5, alpha = 0.3) +
+  geom_line( aes(y = f),       color = "firebrick", size = 0.8) +
+  facet_wrap(~ ID, scales = "free_x") +
+  scale_y_continuous(limits = c(36.5, 38.0)) +
+  labs(
+    title = "Smoothed 30-min binned CBT by subject",
+    x     = "Time",
+    y     = "Core Body Temperature (°C)"
+  ) +
+  theme_minimal()
+
+
+```
+
+# Exporting the smoothed CBT data to Excel
+```{r}
+cbt_final <- cbt_30sm %>%
+  mutate(DateTime = format(DateTime_30, "%H:%M:%S")) %>% 
+  select(ID, DateTime, f)
+
+write_xlsx(cbt_final, path =  "cbt_final.xlsx")
+
+```
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------
