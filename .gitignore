@@ -1,0 +1,33 @@
+#  R / RStudio user files 
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+*_cache/
+cache/
+.Rcheck/
+.quarto/
+*.utf8.md
+*.knit.md
+
+
+output/
+figs/
+reports/
+
+
+data/raw_private/
+data/interim/
+secrets/
+*.key
+*.pem
+
+*.tmp
+*.log
+
