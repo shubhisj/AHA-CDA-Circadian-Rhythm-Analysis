@@ -1,33 +1,45 @@
-#  R / RStudio user files 
-.Rproj.user/
-.Rhistory
-.RData
-.Ruserdata
-.Renviron
-
-# OS noise
+# OS noise 
 .DS_Store
 Thumbs.db
+desktop.ini
 
-*_cache/
-cache/
-.Rcheck/
-.quarto/
-*.utf8.md
-*.knit.md
+# Editors/IDEs 
+.vscode/
+.idea/
 
+# Office temp files
+~$*.docx
+~$*.xlsx
+~$*.pptx
 
+# Logs & temp
+*.log
+*.tmp
+*.bak
+
+# Secrets / env 
+*.key
+*.pem
+*.env
+.Renviron
+
+#  Data (keep only public/release) 
+data/raw_private/
+data/private/
+data/interim/
+data/tmp/
+data/cache/
+# Allow public/released datasets (whitelist)
+!data/release/**
+!data/processed_public/**
+
+# Reports & figures generated locally 
 output/
 figs/
 reports/
 
-
-data/raw_private/
-data/interim/
-secrets/
-*.key
-*.pem
-
-*.tmp
-*.log
+# Quarto/knitr artifacts 
+.quarto/
+*.utf8.md
+*.knit.md
 
