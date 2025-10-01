@@ -9,6 +9,8 @@ This repository contains the datasets used for the AHA-CDA project.
 - `AHA Dataset-Final.xlsx` — Final Harmonized constant-routine dataset prepared for cosinor modeling
 - 'Data Dictionary_AHA_v1.xlsx' - Data dictionary for all datasets
 
+Detailed README file can be found here: README file_v1_2025.docx
+
 Contact
 Maintainer: <Shubhi Jain> (<shubhijain@uabmc.edu>)
 PI/Project Lead: <Dr. S. Justin Thomas> (<sjthoma@uabmc.edu>)
