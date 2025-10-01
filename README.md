@@ -8,6 +8,7 @@ This repository contains the datasets used for the AHA-CDA project.
 - `CBT.Raw-Data.xlsx` — Raw core body temperature (CBT) records for each participant in separate sheets.
 - `AHA Dataset-Final.xlsx` — Final Harmonized constant-routine dataset prepared for cosinor modeling
 - 'Data Dictionary_AHA_v1.xlsx' - Data dictionary for all datasets
+- 'README file_v1_2025.docx' = Detailed README file with all information about the study.
 
 Detailed README file can be found here: README file_v1_2025.docx
 
